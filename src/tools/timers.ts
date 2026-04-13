@@ -5,22 +5,29 @@ import { TogglClient } from "../lib/toggl-client.js";
 export function registerTimerTools(server: McpServer, client: TogglClient) {
   server.tool(
     "start_timer",
-    "Start a new time entry. Stops any currently running timer first.",
+    "Start a new time entry. If start and stop are provided, logs a backdated entry. Otherwise starts a live timer (stops any running one first).",
     {
       description: z.string().optional().describe("Timer description"),
       project_id: z.number().optional().describe("Project ID to assign"),
       tags: z.array(z.string()).optional().describe("Tags to assign"),
       billable: z.boolean().optional().describe("Whether the entry is billable"),
+      start: z.string().optional().describe("Start time ISO 8601 (e.g. 2024-04-13T14:50:00Z). For backdated entries."),
+      stop: z.string().optional().describe("Stop time ISO 8601. Must pair with start."),
     },
-    async ({ description, project_id, tags, billable }) => {
+    async ({ description, project_id, tags, billable, start, stop }) => {
       const entry = await client.startTimeEntry({
         description,
         pid: project_id,
         tags,
         billable,
+        start,
+        stop,
       });
+      const mins = Math.round(entry.duration / 60);
+      const action = stop ? "Logged" : "Timer started";
+      const emoji = stop ? "📝" : "⏱";
       return {
-        content: [{ type: "text", text: `⏱ Timer started: "${entry.description || "No description"}" (ID: ${entry.id})` }],
+        content: [{ type: "text", text: `${emoji} ${action}: "${entry.description || "No description"}" (${mins} min, ID: ${entry.id})` }],
       };
     }
   );

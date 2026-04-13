@@ -139,6 +139,7 @@ export class TogglClient {
       method: "POST",
       body: JSON.stringify({
         created_with: "dabbonet/toggl-mcp",
+        wid: this.workspaceId,
         ...data,
       }),
     });
