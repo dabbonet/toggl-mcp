@@ -22,7 +22,7 @@ export function registerWorkspaceTools(server: McpServer, client: TogglClient) {
     "Verify Toggl API token is valid and get user info.",
     {},
     async () => {
-      const { data: user } = await client.checkAuth();
+      const user = await client.checkAuth();
       return {
         content: [
           {

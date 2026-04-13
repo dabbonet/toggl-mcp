@@ -192,6 +192,6 @@ export class TogglClient {
   // ─── Auth check ────────────────────────────────────────────
 
   async checkAuth() {
-    return this.request<{ data: TogglUser }>(`${this.baseUrl}/me`);
+    return this.request<TogglUser>(`${this.baseUrl}/me`);
   }
 }
