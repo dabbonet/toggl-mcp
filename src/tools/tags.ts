@@ -22,4 +22,14 @@ export function registerTagTools(server: McpServer, client: TogglClient) {
       return { content: [{ type: "text", text: `🏷 Created tag "${tag.name}" (ID: ${tag.id})` }] };
     }
   );
+
+  server.tool(
+    "delete_tag",
+    "Delete a tag.",
+    { id: z.number().describe("Tag ID") },
+    async ({ id }) => {
+      await client.deleteTag(id);
+      return { content: [{ type: "text", text: `🗑 Deleted tag ${id}` }] };
+    }
+  );
 }

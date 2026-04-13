@@ -118,6 +118,18 @@ export class TogglClient {
     );
   }
 
+  async deleteTag(id: number) {
+    const res = await fetch(
+      `${this.baseUrl}/workspaces/${this.workspaceId}/tags/${id}`,
+      { method: "DELETE", headers: this.headers() }
+    );
+    if (!res.ok) {
+      const body = await res.text();
+      throw new TogglError(res.status, `Toggl API ${res.status}: ${body}`);
+    }
+    return res.ok;
+  }
+
   // ─── Time Entries ──────────────────────────────────────────
 
   async getCurrentEntry() {
@@ -180,19 +192,38 @@ export class TogglClient {
     tag_ids?: number[];
     description?: string;
   }) {
-    const url = new URL(
-      `${this.reportsUrl}/workspace/${this.workspaceId}/search/time_entries`
-    );
-    if (params?.start_date) url.searchParams.set("start_date", params.start_date);
-    if (params?.end_date) url.searchParams.set("end_date", params.end_date);
-    if (params?.project_ids?.length)
-      url.searchParams.set("project_ids", params.project_ids.join(","));
-    if (params?.tag_ids?.length)
-      url.searchParams.set("tag_ids", params.tag_ids.join(","));
-    if (params?.description) url.searchParams.set("description", params.description);
-    url.searchParams.set("duration_condition", "not_less");
-    url.searchParams.set("duration", "0");
-    return this.request<TogglSearchResult>(url.toString());
+    const body: Record<string, unknown> = {};
+    if (params?.start_date) body.start_date = params.start_date;
+    if (params?.end_date) body.end_date = params.end_date;
+    if (params?.project_ids?.length) body.project_ids = params.project_ids;
+    if (params?.tag_ids?.length) body.tag_ids = params.tag_ids;
+    if (params?.description) body.description = params.description;
+    body.duration_condition = "not_less";
+    body.duration = "0";
+
+    const url = `${this.reportsUrl}/workspace/${this.workspaceId}/search/time_entries`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new TogglError(res.status, `Toggl Reports API ${res.status}: ${text}`);
+    }
+    const data = await res.json();
+    return {
+      total_count: data.length,
+      data: data.map((r: Record<string, unknown>) => ({
+        id: (r.time_entries as Array<Record<string, unknown>>)?.[0]?.id,
+        description: r.description,
+        duration: (r.time_entries as Array<Record<string, unknown>>)?.[0]?.seconds,
+        project_id: r.project_id,
+        project_name: r.project_name,
+        tags: r.tag_ids,
+        user_id: r.user_id,
+      })),
+    } as TogglSearchResult;
   }
 
   // ─── Auth check ────────────────────────────────────────────
