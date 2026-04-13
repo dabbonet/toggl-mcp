@@ -160,10 +160,15 @@ export class TogglClient {
   }
 
   async deleteTimeEntry(id: number) {
-    return this.request<void>(
+    const res = await fetch(
       `${this.baseUrl}/workspaces/${this.workspaceId}/time_entries/${id}`,
-      { method: "DELETE" }
+      { method: "DELETE", headers: this.headers() }
     );
+    if (!res.ok) {
+      const body = await res.text();
+      throw new TogglError(res.status, `Toggl API ${res.status}: ${body}`);
+    }
+    return res.ok;
   }
 
   // ─── Reports ───────────────────────────────────────────────
