@@ -1,0 +1,26 @@
+{
+  "name": "@dabbonet/toggl-mcp",
+  "version": "1.0.0",
+  "description": "Full-featured Toggl Track MCP server for OpenClaw",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "toggl-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "typescript": "^6.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
