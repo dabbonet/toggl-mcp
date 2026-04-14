@@ -147,13 +147,17 @@ export class TogglClient {
   }
 
   async startTimeEntry(data: StartTimeEntryInput) {
+    const isLive = !data.start;
+    const payload: Record<string, unknown> = {
+      created_with: "dabbonet/toggl-mcp",
+      wid: this.workspaceId,
+      ...data,
+    };
+    if (!payload.start) payload.start = new Date().toISOString();
+    if (!payload.duration && !payload.stop) payload.duration = -1;
     return this.request<TogglTimeEntry>(`${this.baseUrl}/workspaces/${this.workspaceId}/time_entries`, {
       method: "POST",
-      body: JSON.stringify({
-        created_with: "dabbonet/toggl-mcp",
-        wid: this.workspaceId,
-        ...data,
-      }),
+      body: JSON.stringify(payload),
     });
   }
 
